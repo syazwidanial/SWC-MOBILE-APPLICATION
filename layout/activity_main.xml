@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:paddingStart="24dp"
+    android:paddingEnd="24dp"
+    android:paddingBottom="24dp"
+    android:paddingTop="60dp"
+    android:gravity="center"
+    android:background="#F8F9FA">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Surplus Food Rescue"
+        android:textSize="28sp"
+        android:textStyle="bold"
+        android:textColor="#2E7D32"
+        android:layout_marginBottom="8dp"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Select your role to continue"
+        android:textSize="16sp"
+        android:textColor="#546E7A"
+        android:layout_marginBottom="40dp"/>
+
+    <!-- Donor Button -->
+    <Button
+        android:id="@+id/btnRoleDonor"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:text="Donor"
+        android:textSize="16sp"
+        android:textColor="#FFFFFF"
+        android:backgroundTint="#1565C0"
+        android:layout_marginBottom="16dp"/>
+
+    <!-- Recipient Button -->
+    <Button
+        android:id="@+id/btnRoleRecipient"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:text="Recipient"
+        android:textSize="16sp"
+        android:textColor="#FFFFFF"
+        android:backgroundTint="#E65100"
+        android:layout_marginBottom="16dp"/>
+
+    <!-- Volunteer Button -->
+    <Button
+        android:id="@+id/btnRoleVolunteer"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:text="Volunteer Collector"
+        android:textSize="16sp"
+        android:textColor="#FFFFFF"
+        android:backgroundTint="#6A1B9A" />
+
+</LinearLayout>
