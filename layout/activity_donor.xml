@@ -95,22 +95,22 @@
             android:id="@+id/etExpiryTime"
             android:layout_width="match_parent"
             android:layout_height="50dp"
-            android:hint="e.g., Collect by 8:00 PM today"
+            android:hint="e.g., Select date and time"
             android:layout_marginBottom="16dp"/>
 
-        <!-- 5. Pickup Location -->
+        <!-- 5. Pickup Location (District) -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Pickup Location"
+            android:text="Pickup Location (District)"
             android:textStyle="bold"
             android:textColor="#37474F"/>
-        <EditText
-            android:id="@+id/etLocation"
+        <Spinner
+            android:id="@+id/spinnerLocation"
             android:layout_width="match_parent"
             android:layout_height="50dp"
-            android:hint="e.g., Wangsa Maju Block B"
-            android:layout_marginBottom="32dp"/>
+            android:layout_marginBottom="32dp"
+            android:background="#E0E0E0"/>
 
         <!-- Submit Button -->
         <Button
