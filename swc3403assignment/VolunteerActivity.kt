@@ -15,7 +15,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import java.util.Calendar
-import kotlin.jvm.java
 
 class VolunteerActivity : AppCompatActivity() {
 
@@ -95,16 +94,20 @@ class VolunteerActivity : AppCompatActivity() {
     private fun advanceTaskStatus(item: FoodListingModel) {
         when (item.status) {
             "RESERVED" -> {
-                // Step 1: Donor handover -> In Transit
-                dbHelper.updateFoodStatus(item.id, "IN_TRANSIT")
-                Toast.makeText(this, "Status updated to IN TRANSIT", Toast.LENGTH_SHORT).show()
-                loadVolunteerTasks()
+                // FIXED: Changed "IN_TRANSIT" to "IN TRANSIT" (space) to match the database query
+                val updated = dbHelper.updateFoodStatus(item.id, "IN TRANSIT")
+                if (updated) {
+                    Toast.makeText(this, "Status updated to IN TRANSIT", Toast.LENGTH_SHORT).show()
+                    loadVolunteerTasks()
+                }
             }
-            "IN_TRANSIT" -> {
-                // Step 2: Recipient handover -> Delivered
-                dbHelper.updateFoodStatus(item.id, "DELIVERED")
-                Toast.makeText(this, "DELIVERED! Task moved to History Log.", Toast.LENGTH_SHORT).show()
-                loadVolunteerTasks()
+            "IN TRANSIT", "IN_TRANSIT" -> {
+                // Handles both space and underscore variants safely
+                val updated = dbHelper.updateFoodStatus(item.id, "DELIVERED")
+                if (updated) {
+                    Toast.makeText(this, "DELIVERED! Task moved to History Log.", Toast.LENGTH_SHORT).show()
+                    loadVolunteerTasks()
+                }
             }
         }
     }
@@ -152,6 +155,7 @@ class VolunteerAdapter(
             holder.btnAdvance.setBackgroundColor(Color.parseColor("#EF6C00"))
             holder.btnSchedule.visibility = View.VISIBLE
         } else {
+            // Displays for "IN TRANSIT"
             holder.tvStatus.setBackgroundColor(Color.parseColor("#E3F2FD"))
             holder.tvStatus.setTextColor(Color.parseColor("#1565C0"))
             holder.btnAdvance.text = "Confirm Delivered"
