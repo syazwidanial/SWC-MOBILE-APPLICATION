@@ -23,31 +23,32 @@ class DonorActivity : ComponentActivity() {
     private lateinit var tvQuantityDisplay: TextView
     private lateinit var seekBarQuantity: SeekBar
     private lateinit var etExpiryTime: EditText
-    private lateinit var etLocation: EditText
+    private lateinit var spinnerLocation: Spinner
     private lateinit var btnSubmitDonation: Button
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_donor)
 
-        // Initialize Database
         dbHelper = databasehelper(this)
 
-        // Bind UI Elements
         etFoodTitle = findViewById(R.id.etFoodTitle)
         spinnerCategory = findViewById(R.id.spinnerCategory)
         tvQuantityDisplay = findViewById(R.id.tvQuantityDisplay)
         seekBarQuantity = findViewById(R.id.seekBarQuantity)
         etExpiryTime = findViewById(R.id.etExpiryTime)
-        etLocation = findViewById(R.id.etLocation)
+        spinnerLocation = findViewById(R.id.spinnerLocation)
         btnSubmitDonation = findViewById(R.id.btnSubmitDonation)
 
-        // Setup Spinner (Dropdown for categories)
+        // Setup Category Spinner
         val categories = arrayOf("Cooked", "Bakery", "Produce")
-        val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, categories)
-        spinnerCategory.adapter = adapter
+        spinnerCategory.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, categories)
 
-        // Setup Slider/SeekBar Logic
+        // Setup Location Spinner (Matching RecipientActivity filter options)
+        val locations = arrayOf("Wangsa Maju", "Cheras", "Setapak", "Ampang")
+        spinnerLocation.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, locations)
+
+        // Setup Quantity Slider
         seekBarQuantity.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
                 tvQuantityDisplay.text = progress.toString()
@@ -56,48 +57,28 @@ class DonorActivity : ComponentActivity() {
             override fun onStopTrackingTouch(seekBar: SeekBar?) {}
         })
 
-        // Setup Date & Time Picker for Expiry Field
+        // Setup Calendar & Clock Picker
         etExpiryTime.isFocusable = false
         etExpiryTime.isClickable = true
-        etExpiryTime.setOnClickListener {
-            showDateTimePicker()
-        }
+        etExpiryTime.setOnClickListener { showDateTimePicker() }
 
-        // Handle Submit Button
-        btnSubmitDonation.setOnClickListener {
-            processDonation()
-        }
+        btnSubmitDonation.setOnClickListener { processDonation() }
     }
 
     private fun showDateTimePicker() {
         val calendar = Calendar.getInstance()
-        val currentYear = calendar.get(Calendar.YEAR)
-        val currentMonth = calendar.get(Calendar.MONTH)
-        val currentDay = calendar.get(Calendar.DAY_OF_MONTH)
-
-        // 1. Launch Date Picker
         val datePickerDialog = DatePickerDialog(this, { _, year, monthOfYear, dayOfMonth ->
-            val currentHour = calendar.get(Calendar.HOUR_OF_DAY)
-            val currentMinute = calendar.get(Calendar.MINUTE)
-
-            // 2. Immediately launch Time Picker after selecting the date
             val timePickerDialog = TimePickerDialog(this, { _, hourOfDay, minute ->
-                val formattedDateTime = String.format(
+                val formatted = String.format(
                     Locale.getDefault(),
                     "%04d-%02d-%02d %02d:%02d",
-                    year,
-                    monthOfYear + 1,
-                    dayOfMonth,
-                    hourOfDay,
-                    minute
+                    year, monthOfYear + 1, dayOfMonth, hourOfDay, minute
                 )
-                etExpiryTime.setText(formattedDateTime)
-            }, currentHour, currentMinute, false)
-
+                etExpiryTime.setText(formatted)
+            }, calendar.get(Calendar.HOUR_OF_DAY), calendar.get(Calendar.MINUTE), false)
             timePickerDialog.show()
-        }, currentYear, currentMonth, currentDay)
+        }, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH))
 
-        // Restrict selection to current time onward (no past dates)
         datePickerDialog.datePicker.minDate = System.currentTimeMillis()
         datePickerDialog.show()
     }
@@ -107,10 +88,9 @@ class DonorActivity : ComponentActivity() {
         val category = spinnerCategory.selectedItem.toString()
         val quantity = seekBarQuantity.progress
         val expiry = etExpiryTime.text.toString().trim()
-        val location = etLocation.text.toString().trim()
+        val location = spinnerLocation.selectedItem.toString()
 
-        // Input Validation
-        if (title.isEmpty() || expiry.isEmpty() || location.isEmpty()) {
+        if (title.isEmpty() || expiry.isEmpty()) {
             Toast.makeText(this, "Please fill in all text fields", Toast.LENGTH_SHORT).show()
             return
         }
@@ -120,16 +100,13 @@ class DonorActivity : ComponentActivity() {
             return
         }
 
-        // Save to SQLite
         val isSaved = dbHelper.insertFoodListing(title, category, quantity, expiry, location)
 
         if (isSaved) {
             AlertDialog.Builder(this)
                 .setTitle("Success!")
                 .setMessage("Your surplus food has been posted for recipients to claim.")
-                .setPositiveButton("OK") { _, _ ->
-                    finish()
-                }
+                .setPositiveButton("OK") { _, _ -> finish() }
                 .setCancelable(false)
                 .show()
         } else {
