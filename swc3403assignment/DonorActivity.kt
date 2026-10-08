@@ -1,5 +1,7 @@
 package com.example.swc3403assignment
 
+import android.app.DatePickerDialog
+import android.app.TimePickerDialog
 import android.os.Bundle
 import android.widget.ArrayAdapter
 import android.widget.Button
@@ -10,6 +12,8 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.appcompat.app.AlertDialog
+import java.util.Calendar
+import java.util.Locale
 
 class DonorActivity : ComponentActivity() {
 
@@ -38,7 +42,7 @@ class DonorActivity : ComponentActivity() {
         etLocation = findViewById(R.id.etLocation)
         btnSubmitDonation = findViewById(R.id.btnSubmitDonation)
 
-        // Setup Spinner (Dropdown for categories as requested in brief)
+        // Setup Spinner (Dropdown for categories)
         val categories = arrayOf("Cooked", "Bakery", "Produce")
         val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, categories)
         spinnerCategory.adapter = adapter
@@ -52,10 +56,50 @@ class DonorActivity : ComponentActivity() {
             override fun onStopTrackingTouch(seekBar: SeekBar?) {}
         })
 
+        // Setup Date & Time Picker for Expiry Field
+        etExpiryTime.isFocusable = false
+        etExpiryTime.isClickable = true
+        etExpiryTime.setOnClickListener {
+            showDateTimePicker()
+        }
+
         // Handle Submit Button
         btnSubmitDonation.setOnClickListener {
             processDonation()
         }
+    }
+
+    private fun showDateTimePicker() {
+        val calendar = Calendar.getInstance()
+        val currentYear = calendar.get(Calendar.YEAR)
+        val currentMonth = calendar.get(Calendar.MONTH)
+        val currentDay = calendar.get(Calendar.DAY_OF_MONTH)
+
+        // 1. Launch Date Picker
+        val datePickerDialog = DatePickerDialog(this, { _, year, monthOfYear, dayOfMonth ->
+            val currentHour = calendar.get(Calendar.HOUR_OF_DAY)
+            val currentMinute = calendar.get(Calendar.MINUTE)
+
+            // 2. Immediately launch Time Picker after selecting the date
+            val timePickerDialog = TimePickerDialog(this, { _, hourOfDay, minute ->
+                val formattedDateTime = String.format(
+                    Locale.getDefault(),
+                    "%04d-%02d-%02d %02d:%02d",
+                    year,
+                    monthOfYear + 1,
+                    dayOfMonth,
+                    hourOfDay,
+                    minute
+                )
+                etExpiryTime.setText(formattedDateTime)
+            }, currentHour, currentMinute, false)
+
+            timePickerDialog.show()
+        }, currentYear, currentMonth, currentDay)
+
+        // Restrict selection to current time onward (no past dates)
+        datePickerDialog.datePicker.minDate = System.currentTimeMillis()
+        datePickerDialog.show()
     }
 
     private fun processDonation() {
@@ -65,7 +109,7 @@ class DonorActivity : ComponentActivity() {
         val expiry = etExpiryTime.text.toString().trim()
         val location = etLocation.text.toString().trim()
 
-        // Input Validation & Usability Requirements
+        // Input Validation
         if (title.isEmpty() || expiry.isEmpty() || location.isEmpty()) {
             Toast.makeText(this, "Please fill in all text fields", Toast.LENGTH_SHORT).show()
             return
@@ -76,16 +120,15 @@ class DonorActivity : ComponentActivity() {
             return
         }
 
-        // Save to Database
+        // Save to SQLite
         val isSaved = dbHelper.insertFoodListing(title, category, quantity, expiry, location)
 
         if (isSaved) {
-            // Meaningful feedback alert
             AlertDialog.Builder(this)
                 .setTitle("Success!")
                 .setMessage("Your surplus food has been posted for recipients to claim.")
                 .setPositiveButton("OK") { _, _ ->
-                    finish() // Closes the Donor screen and goes back to Main Menu
+                    finish()
                 }
                 .setCancelable(false)
                 .show()
